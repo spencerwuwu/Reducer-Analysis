@@ -42,7 +42,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
-
+import statementResolver.Options;
 import soot.ArrayType;
 import soot.BooleanType;
 import soot.Modifier;
@@ -59,13 +59,15 @@ import soot.jimple.JimpleBody;
 
 
 public class SootRunner {
+	
+	private final soot.options.Options sootOpt;
 
 	public SootRunner() {
 		this(new ArrayList<String>());
 	}
 
 	public SootRunner(List<String> resolvedClassNames) {
-		//this.sootOpt = soot.options.Options.v();
+		this.sootOpt = soot.options.Options.v();
 	}
 
 	public void run(String input, String classPath) {
@@ -100,8 +102,22 @@ public class SootRunner {
 			}
 
 			// set soot-class-path
+			sootOpt.set_soot_classpath(cp);
+			sootOpt.set_src_prec(soot.options.Options.src_prec_only_class);
+
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
+
+			if (Options.v().useBuiltInSpecs()) {
+				File specDir = new File("spec_stuff/");
+				writeSpecPackageToDisc(specDir);
+				processDirs.add(specDir.getAbsolutePath());
+			}
+			if (Options.v().checkMixedJavaClassFiles()) {
+				//enforceNoSrcPolicy(processDirs);
+				System.out.println("Skip enforceNoSrcPolicy() by Spencer");
+			}
+			sootOpt.set_process_dir(processDirs);
 
 
 			// finally, run soot
@@ -154,7 +170,14 @@ public class SootRunner {
 	 *            analyzing jars)
 	 */
 	protected void loadClassesIntoScene(List<String> classes) {
-	
+		sootOpt.set_keep_line_number(true);
+		sootOpt.set_prepend_classpath(true); // -pp
+
+		sootOpt.set_output_format(soot.options.Options.output_format_none);
+		// prevent strange assertion optimization.
+		sootOpt.setPhaseOption("jop.cpf", "enabled:false");
+		sootOpt.set_allow_phantom_refs(true);
+
 
 		for (String s : classes) {
 			Scene.v().addBasicClass(s, SootClass.BODIES);
