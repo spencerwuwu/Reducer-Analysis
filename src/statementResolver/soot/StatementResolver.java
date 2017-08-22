@@ -83,6 +83,8 @@ public class StatementResolver {
 		SootRunner runner = new SootRunner();
 		
 		runner.run(input, classPath);
+		
+		// Main analysis starts from here
 		performAnalysis();
 	}
 	private void addDefaultInitializers(SootMethod constructor, SootClass containingClass) {
@@ -264,6 +266,7 @@ public class StatementResolver {
 		return bodies;
 	}
 	
+	// For switch replacement
 	private List<Unit> parseSwitchStatement(JLookupSwitchStmt s) {
 		List<Unit> result = new LinkedList<Unit>();
 
