@@ -115,7 +115,6 @@ public class SootRunner {
 			}
 			if (Options.v().checkMixedJavaClassFiles()) {
 				//enforceNoSrcPolicy(processDirs);
-				System.out.println("Skip enforceNoSrcPolicy() by Spencer");
 			}
 			sootOpt.set_process_dir(processDirs);
 
