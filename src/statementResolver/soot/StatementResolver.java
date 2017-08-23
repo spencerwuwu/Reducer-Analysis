@@ -225,13 +225,38 @@ public class StatementResolver {
 			List<Unit> switches = new LinkedList<Unit>();
 			Map<Unit, List<Unit>> switchMap = new LinkedHashMap<Unit, List<Unit>>();
 
-			List<UnitBox> Boxes = body.getUnitBoxes(true);
-			for (UnitBox u: Boxes) {
-				System.out.println(Color.ANSI_RED+u+Color.ANSI_RESET);
-			}
 			
 			*/
+			List<UnitBox> Boxes = body.getUnitBoxes(true);
+			for (UnitBox u: Boxes) {
+				System.out.println(Color.ANSI_PURPLE+u+Color.ANSI_RESET);
+
+				if (u.getUnit() instanceof JLookupSwitchStmt) {
+					System.out.println(Color.ANSI_BLUE+"--Switch--"+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
+					System.out.println("");
+
+				}/*
+				else if (u.getUnit() instanceof AssignStmt) {
+					
+					System.out.println(Color.ANSI_BLUE+"--Assign--"+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
+					System.out.println("");
+					
+				}*/
+				else if (u.getUnit() instanceof IfStmt) {
+					System.out.println(Color.ANSI_BLUE+"--IfStmt--"+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
+					System.out.println("");
+				}
+				else
+					System.out.println(u.getUnit());
+			}
 			
+			/*
 			PatchingChain<Unit> units = body.getUnits();
 			for (Unit u : units) {
 				if (u instanceof JLookupSwitchStmt) {
@@ -240,10 +265,6 @@ public class StatementResolver {
 					System.out.println(Color.ANSI_RED+u.getUnitBoxes()+Color.ANSI_RESET);
 					System.out.println("");
 
-					/*
-					switchMap.put(u, parseSwitchStatement((JLookupSwitchStmt) u));
-					System.out.println(switchMap);
-					*/
 				}
 				else if (u instanceof AssignStmt) {
 					
@@ -262,7 +283,7 @@ public class StatementResolver {
 				else
 					System.out.println(u);
 			}
-			/*
+
 			for (Entry<Unit, List<Unit>> entry : switchMap.entrySet()) {
 				System.out.println("entry");
 				System.out.println(entry.getValue());
