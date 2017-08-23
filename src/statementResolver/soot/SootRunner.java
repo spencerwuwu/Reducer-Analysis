@@ -74,14 +74,81 @@ public class SootRunner {
 		if (null == input || input.isEmpty()) {
 			return;
 		}
+
+		if (input.endsWith(".jar")) {
+			// run with JAR file
+			runWithJar(input, classPath);
+		}
+		else if (input.endsWith(".class")) {
+			// run with JAR file
+			runWithClass(input, classPath);
+		}
+		else {
 		File file = new File(input);
 		if (file.isDirectory()) {
 			runWithPath(input, classPath);
 		} else {
 			throw new RuntimeException("Don't know what to do with: " + input);
 		}
+		}
 	}
 
+
+	private void runWithJar(String jarFile, String classPath) {
+		try {
+			// extract dependent JARs
+			List<File> jarFiles = new ArrayList<File>();
+			jarFiles.addAll(extractClassPath(new File(jarFile)));
+			jarFiles.add(new File(jarFile));
+
+			// additional classpath available?
+			String cp = buildClassPath(jarFiles);
+			if (classPath != null) {
+				cp += File.pathSeparatorChar + classPath;
+			}
+
+			// set soot-class-path
+			sootOpt.set_soot_classpath(cp);
+
+			// finally, run soot
+			loadClassesIntoScene(enumClasses(new File(jarFile)));
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+	private void runWithClass(String path, String classPath) {
+		try {
+			// dependent JAR files
+			List<File> jarFiles = new ArrayList<File>();
+
+			// additional classpath available?
+			String cp = buildClassPath(jarFiles);
+			if (classPath != null) {
+				cp += File.pathSeparatorChar + classPath;
+			}
+
+			// set soot-class-path
+			sootOpt.set_soot_classpath(cp);
+			sootOpt.set_src_prec(soot.options.Options.src_prec_only_class);
+
+			List<String> processDirs = new LinkedList<String>();
+			processDirs.add(path);
+
+			
+			sootOpt.set_process_dir(processDirs);
+
+
+			// finally, run soot
+			loadClassesIntoScene(new LinkedList<String>());
+
+			// now set the main class
+			inferMainMethod();
+
+		} catch (Exception e) {
+			throw e;
+		}
+	}
 	/**
 	 * Runs Soot by using a path (e.g., from Joogie)
 	 * 

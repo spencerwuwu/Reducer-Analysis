@@ -17,7 +17,7 @@ public class Main {
 			SR.run(javaInput, classPath);
 			
 		} else {
-			System.err.println("usage: [class_dir] [(optional)classpath]");
+			System.err.println("usage: [class_dir/class_file] [(optional)classpath] / [jar_file]");
 		}
 	}
 	

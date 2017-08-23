@@ -17,6 +17,7 @@ import java.util.Map.Entry;
 
 import com.google.common.base.Preconditions;
 
+import statementResolver.color.Color;
 import soot.Body;
 import soot.PatchingChain;
 import soot.RefType;
@@ -25,6 +26,7 @@ import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
+import soot.UnitBox;
 import soot.Value;
 import soot.ValueBox;
 import soot.jimple.AssignStmt;
@@ -41,6 +43,10 @@ import soot.jimple.TableSwitchStmt;
 import soot.jimple.internal.JLookupSwitchStmt;
 import soot.jimple.toolkits.scalar.UnreachableCodeEliminator;
 import soot.tagkit.Host;
+import soot.toolkits.graph.Block;
+import soot.toolkits.graph.CompleteBlockGraph;
+import soot.toolkits.graph.ExceptionalUnitGraph;
+import soot.toolkits.graph.UnitGraph;
 import soottocfg.cfg.Program;
 import soottocfg.cfg.SourceLocation;
 import soottocfg.soot.util.DuplicatedCatchDetection;
@@ -197,6 +203,11 @@ public class StatementResolver {
 		// Begin
 
 		for (JimpleBody body : this.getSceneBodies()) {
+			System.out.println(Color.ANSI_CYAN+body+Color.ANSI_RESET);
+			/*
+			CompleteBlockGraph myblock = new CompleteBlockGraph(body);
+			System.out.println(Color.ANSI_RED+myblock+Color.ANSI_RESET);
+			*/
 			/*
 			Iterator<Unit> iterator = body.getUnits().iterator();
 
@@ -214,26 +225,38 @@ public class StatementResolver {
 			List<Unit> switches = new LinkedList<Unit>();
 			Map<Unit, List<Unit>> switchMap = new LinkedHashMap<Unit, List<Unit>>();
 
+			List<UnitBox> Boxes = body.getUnitBoxes(true);
+			for (UnitBox u: Boxes) {
+				System.out.println(Color.ANSI_RED+u+Color.ANSI_RESET);
+			}
+			
 			*/
+			
 			PatchingChain<Unit> units = body.getUnits();
 			for (Unit u : units) {
 				if (u instanceof JLookupSwitchStmt) {
-					System.out.println("\u001B[34m--Switch--\u001B[0m");
-					System.out.println("\u001B[35m"+u+"\u001B[0m");
+					System.out.println(Color.ANSI_BLUE+"--Switch--"+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_GREEN+u+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_RED+u.getUnitBoxes()+Color.ANSI_RESET);
 					System.out.println("");
+
 					/*
 					switchMap.put(u, parseSwitchStatement((JLookupSwitchStmt) u));
 					System.out.println(switchMap);
 					*/
 				}
 				else if (u instanceof AssignStmt) {
-					System.out.println("\u001B[34m--Assign--\u001B[0m");
-					System.out.println("\u001B[35m"+u+"\u001B[0m");
+					
+					System.out.println(Color.ANSI_BLUE+"--Assign--"+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_GREEN+u+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_RED+u.getUnitBoxes()+Color.ANSI_RESET);
 					System.out.println("");
+					
 				}
 				else if (u instanceof IfStmt) {
-					System.out.println("\u001B[34m--IfStmt--\u001B[0m");
-					System.out.println("\u001B[35m"+u+"\u001B[0m");
+					System.out.println(Color.ANSI_BLUE+"--IfStmt--"+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_GREEN+u+Color.ANSI_RESET);
+					System.out.println(Color.ANSI_RED+u.getUnitBoxes()+Color.ANSI_RESET);
 					System.out.println("");
 				}
 				else
