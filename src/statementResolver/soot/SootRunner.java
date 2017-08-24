@@ -42,7 +42,7 @@ import com.google.common.io.ByteStreams;
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.ClassPath.ClassInfo;
 
-import statementResolver.Options;
+
 import soot.ArrayType;
 import soot.BooleanType;
 import soot.Modifier;
@@ -80,16 +80,16 @@ public class SootRunner {
 			runWithJar(input, classPath);
 		}
 		else if (input.endsWith(".class")) {
-			// run with JAR file
+			// run with Class file
 			runWithClass(input, classPath);
 		}
 		else {
-		File file = new File(input);
-		if (file.isDirectory()) {
-			runWithPath(input, classPath);
-		} else {
-			throw new RuntimeException("Don't know what to do with: " + input);
-		}
+			File file = new File(input);
+			if (file.isDirectory()) {
+				runWithPath(input, classPath);
+			} else {
+				throw new RuntimeException("Don't know what to do with: " + input);
+			}
 		}
 	}
 
@@ -117,6 +117,20 @@ public class SootRunner {
 			throw e;
 		}
 	}
+	/**
+	 * Runs Soot by using a path (e.g., from Joogie)
+	 * 
+	 * @param path
+	 *            Path * @param classPath Optional classpath (may be null)
+	 * @param classPath
+	 *            Optional classpath (may be null)
+	 */
+	
+	/**
+	 * Runs Soot by using a class file 
+	 * This is almost the same as run with path
+	 *
+	 */
 	private void runWithClass(String path, String classPath) {
 		try {
 			// dependent JAR files
@@ -149,14 +163,6 @@ public class SootRunner {
 			throw e;
 		}
 	}
-	/**
-	 * Runs Soot by using a path (e.g., from Joogie)
-	 * 
-	 * @param path
-	 *            Path * @param classPath Optional classpath (may be null)
-	 * @param classPath
-	 *            Optional classpath (may be null)
-	 */
 	private void runWithPath(String path, String classPath) {
 		try {
 			// dependent JAR files
@@ -175,14 +181,6 @@ public class SootRunner {
 			List<String> processDirs = new LinkedList<String>();
 			processDirs.add(path);
 
-			if (Options.v().useBuiltInSpecs()) {
-				File specDir = new File("spec_stuff/");
-				writeSpecPackageToDisc(specDir);
-				processDirs.add(specDir.getAbsolutePath());
-			}
-			if (Options.v().checkMixedJavaClassFiles()) {
-				//enforceNoSrcPolicy(processDirs);
-			}
 			sootOpt.set_process_dir(processDirs);
 
 
@@ -297,12 +295,6 @@ public class SootRunner {
 		}
 	}
 
-	// private void loadNecessaryClasses() {
-	// for (String eachClassname : resolvedClassNames) {
-	// final SootClass theClass = Scene.v().loadClassAndSupport(eachClassname);
-	// theClass.setApplicationClass();
-	// }
-	// }
 
 	public static final String assertionClassName = "JayHornAssertions";
 	public static final String assertionProcedureName = "super_crazy_assertion";
