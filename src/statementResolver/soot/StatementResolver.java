@@ -3,6 +3,7 @@ package statementResolver.soot;
 
 import com.google.common.base.Preconditions;
 
+import statementResolver.Option;
 import statementResolver.color.Color;
 import soot.Body;
 import soot.PatchingChain;
@@ -29,7 +30,7 @@ public class StatementResolver {
 	
 
 	private final List<String> resolvedClassNames;
-
+	Option op = new Option();
 
 	public StatementResolver() {
 		this(new ArrayList<String>());
@@ -41,11 +42,11 @@ public class StatementResolver {
 		soot.G.reset();
 	}
 
-	public void run(String input, String classPath) {
+	public void run(String input, String classPath, Option option) {
 		SootRunner runner = new SootRunner();
 		
 		runner.run(input, classPath);
-		
+		op = option;
 		// Main analysis starts from here
 		performAnalysis();
 	}
@@ -199,6 +200,9 @@ public class StatementResolver {
 		
 		// end
 		
+		if (op.cfg_flag) {
+			System.out.println("graph");
+		}
 		
 	}
 
