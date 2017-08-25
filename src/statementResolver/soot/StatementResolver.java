@@ -16,6 +16,7 @@ import soot.UnitBox;
 import soot.Value;
 import soot.ValueBox;
 import soot.jimple.*;
+import soot.jimple.internal.*;
 import soot.jimple.internal.JLookupSwitchStmt;
 
 import java.util.ArrayList;
@@ -88,12 +89,22 @@ public class StatementResolver {
 
 		}
 	}
+	
+
+	public SootClass getAssertionClass() {
+		return Scene.v().getSootClass(SootRunner.assertionClassName);
+	}
 
 	public void performAnalysis() {
 
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		
 		for (SootClass sc : classes) {
+			
+			if (sc == getAssertionClass()) {
+				continue; // no need to process this guy.
+			}
+
 			
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 				for (SootMethod sm : sc.getMethods()) {
@@ -116,61 +127,73 @@ public class StatementResolver {
 		}
 		
 
-		// Begin
+		// Begin Analysis
 
 		for (JimpleBody body : this.getSceneBodies()) {
-			System.out.println(Color.ANSI_CYAN+body+Color.ANSI_RESET);
-			/*
-			Iterator<Unit> iterator = body.getUnits().iterator();
 
-			while (iterator.hasNext()) {
-				Unit u = iterator.next();
-				System.out.println("--AssignStmt--");
-				if (u instanceof AssignStmt) {
-					System.out.println(u);
-				}
-				System.out.println("--IfStmt--");
-				if (u instanceof IfStmt) {
-					System.out.println(u);
-				}
-			}
-			List<Unit> switches = new LinkedList<Unit>();
-			Map<Unit, List<Unit>> switchMap = new LinkedHashMap<Unit, List<Unit>>();
-
-			
-			*/
 			List<UnitBox> Boxes = body.getUnitBoxes(true);
+			
 			for (UnitBox u: Boxes) {
-				System.out.println(Color.ANSI_PURPLE+u+Color.ANSI_RESET);
+				//System.out.println(Color.ANSI_PURPLE+u+Color.ANSI_RESET);
 
 				if (u.getUnit() instanceof JLookupSwitchStmt) {
-					System.out.println(Color.ANSI_BLUE+"--Switch--"+Color.ANSI_RESET);
-					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
-					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
-					System.out.println("");
 
-				}/*
+				}
 				else if (u.getUnit() instanceof AssignStmt) {
 					
-					System.out.println(Color.ANSI_BLUE+"--Assign--"+Color.ANSI_RESET);
-					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
-					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
-					System.out.println("");
+				}
+				else if (u.getUnit() instanceof ArrayRef) {
 					
-				}*/
-				else if (u.getUnit() instanceof IfStmt) {
+				}
+				else if (u.getUnit() instanceof BreakpointStmt) {
+					
+				}
+				else if (u.getUnit() instanceof BinopExpr) {
+					
+				}
+				else if (u.getUnit() instanceof CaughtExceptionRef) {
+					
+				}
+				else if (u.getUnit() instanceof GotoStmt) {
+					
+				}
+				else if (u.getUnit() instanceof NoSuchLocalException) {
+					
+				}
+				else if (u.getUnit() instanceof NullConstant) {
+					/*
 					System.out.println(Color.ANSI_BLUE+"--IfStmt--"+Color.ANSI_RESET);
 					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
 					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
 					System.out.println("");
+					*/
+				}
+				else if (u.getUnit() instanceof IfStmt) {
+					
+				}
+				else if (u.getUnit() instanceof JInstanceOfExpr) {
+					
+				}
+				else if (u.getUnit() instanceof InvokeExpr) {
+					
+				}
+				else if (u.getUnit() instanceof ReturnStmt) {
+					
+				}
+				else if (u.getUnit() instanceof TableSwitchStmt) {
+					
+				}
+				else if (u.getUnit() instanceof ThrowStmt) {
+					
+				}
+				else if (u.getUnit() instanceof ReturnVoidStmt) {
+					
 				}
 				else
 					System.out.println(u.getUnit());
 			}
 			
-			/*
-			PatchingChain<Unit> units = body.getUnits();
-			*/
+
 			
 		}
 		
