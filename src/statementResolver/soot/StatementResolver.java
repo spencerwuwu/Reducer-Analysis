@@ -6,7 +6,6 @@ import com.google.common.base.Preconditions;
 import statementResolver.Option;
 import statementResolver.color.Color;
 import soot.Body;
-import soot.PatchingChain;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -47,6 +46,7 @@ public class StatementResolver {
 		
 		runner.run(input, classPath);
 		op = option;
+		
 		// Main analysis starts from here
 		performAnalysis();
 	}
@@ -128,15 +128,13 @@ public class StatementResolver {
 		}
 		
 
-		// Begin Analysis
-
 		for (JimpleBody body : this.getSceneBodies()) {
 
 			List<UnitBox> Boxes = body.getUnitBoxes(true);
 			
 			for (UnitBox u: Boxes) {
-				//System.out.println(Color.ANSI_PURPLE+u+Color.ANSI_RESET);
 
+				// For further analysis
 				if (u.getUnit() instanceof JLookupSwitchStmt) {
 
 				}
@@ -162,20 +160,21 @@ public class StatementResolver {
 					
 				}
 				else if (u.getUnit() instanceof NullConstant) {
-					/*
-					System.out.println(Color.ANSI_BLUE+"--IfStmt--"+Color.ANSI_RESET);
-					System.out.println(Color.ANSI_GREEN+u.getUnit()+Color.ANSI_RESET);
-					System.out.println(Color.ANSI_RED+u.getUnit().getUnitBoxes()+Color.ANSI_RESET);
-					System.out.println("");
-					*/
+					
 				}
 				else if (u.getUnit() instanceof IfStmt) {
+					
+				}
+				else if (u.getUnit() instanceof IdentityStmt) {
 					
 				}
 				else if (u.getUnit() instanceof JInstanceOfExpr) {
 					
 				}
-				else if (u.getUnit() instanceof InvokeExpr) {
+				else if (u.getUnit() instanceof JExitMonitorStmt) {
+					
+				}
+				else if (u.getUnit() instanceof JInvokeStmt) {
 					
 				}
 				else if (u.getUnit() instanceof ReturnStmt) {
@@ -190,18 +189,17 @@ public class StatementResolver {
 				else if (u.getUnit() instanceof ReturnVoidStmt) {
 					
 				}
-				else
+				else {
 					System.out.println(u.getUnit());
+				}
 			}
 			
-
 			
 		}
 		
-		// end
 		
 		if (op.cfg_flag) {
-			System.out.println("graph");
+			// TODO
 		}
 		
 	}

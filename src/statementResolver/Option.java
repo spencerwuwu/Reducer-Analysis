@@ -7,7 +7,7 @@ public class Option {
 			+ "* Input: class/jar/directory \n"
 			+ "* Options:\n"
 			+ "    -h               help \n"
-			+ "    -c class_path    Set classpath \n"
+			+ "    -c class_path    Set classpath (Optional for jar file) \n"
 			+ "    -g               Generate control flow graph \n";
 	public final static String Warning = "Invalid input, use -h for help";
 	public boolean cfg_flag;
