@@ -18,6 +18,14 @@ import soot.ValueBox;
 import soot.jimple.*;
 import soot.jimple.internal.*;
 import soot.jimple.internal.JLookupSwitchStmt;
+import soot.toolkits.graph.BlockGraph;
+import soot.toolkits.graph.BriefBlockGraph;
+import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.CompleteUnitGraph;
+import soot.toolkits.graph.DirectedGraph;
+import soot.toolkits.graph.UnitGraph;
+import soot.util.cfgcmd.CFGToDotGraph;
+import soot.util.dot.DotGraph;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -101,7 +109,7 @@ public class StatementResolver {
 		List<SootClass> classes = new LinkedList<SootClass>(Scene.v().getClasses());
 		
 		for (SootClass sc : classes) {
-			
+
 			if (sc == getAssertionClass()) {
 				continue; // no need to process this guy.
 			}
@@ -109,7 +117,6 @@ public class StatementResolver {
 			
 			if (sc.resolvingLevel() >= SootClass.SIGNATURES && sc.isApplicationClass()) {
 				for (SootMethod sm : sc.getMethods()) {
-					
 					if (sm.isConcrete()) {
 						addDefaultInitializers(sm, sc);
 					}
@@ -119,7 +126,7 @@ public class StatementResolver {
 						body.validate();
 					} catch (RuntimeException e) {
 						System.out.println("Unable to validate method body. Possible NullPointerException?");
-						throw e;
+						throw e;	
 					}
 
 				}
@@ -128,12 +135,25 @@ public class StatementResolver {
 		}
 		
 
-		for (JimpleBody body : this.getSceneBodies()) {
+		//for (JimpleBody body : this.getSceneBodies()) {
+		for (JimpleBody body : this.get_colloctor_SceneBodies()) {
 
 			List<UnitBox> Boxes = body.getUnitBoxes(true);
 			
 			for (UnitBox u: Boxes) {
 
+				// Generate reducer's graph
+				String str = u.getUnit().toString();
+				
+				// System.out.println(str + "//\n");
+				
+				/*
+					CFGToDotGraph cfgToDot = new CFGToDotGraph();
+					DirectedGraph g = new CompleteUnitGraph(body);
+					DotGraph dotGraph = cfgToDot.drawCFG(g, body);
+					dotGraph.plot("context0_90_11_2.dot");
+				*/
+				
 				// For further analysis
 				if (u.getUnit() instanceof JLookupSwitchStmt) {
 
@@ -200,6 +220,19 @@ public class StatementResolver {
 		
 		if (op.cfg_flag) {
 			// TODO
+			/*
+			BlockGraph blockGraph = new BriefBlockGraph(body);
+			System.out.println(blockGraph);
+			}
+			*/
+			CFGToDotGraph cfgToDot = new CFGToDotGraph();
+			int i = 0;
+			for (JimpleBody body : this.getSceneBodies()) {
+				DirectedGraph g = new CompleteUnitGraph(body);
+				DotGraph dotGraph = cfgToDot.drawCFG(g, body);
+				dotGraph.plot(i+".dot");
+				i = i+1;
+			}
 		}
 		
 	}
@@ -207,10 +240,40 @@ public class StatementResolver {
 	protected Set<JimpleBody> getSceneBodies() {
 		Set<JimpleBody> bodies = new LinkedHashSet<JimpleBody>();
 		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
+
 			if (sc.resolvingLevel() >= SootClass.BODIES) {
+
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete()) {
 						bodies.add((JimpleBody) sm.retrieveActiveBody());
+					}
+				}
+			}
+		}
+		return bodies;
+	}
+	
+
+	protected Set<JimpleBody> get_colloctor_SceneBodies() {
+		Set<JimpleBody> bodies = new LinkedHashSet<JimpleBody>();
+		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
+			//System.out.println(sc);
+			if (sc.resolvingLevel() >= SootClass.BODIES && sc.toString().contains("collector531_810_1_1_3")) {
+				System.out.println("\n");
+				System.out.println(sc);
+
+				for (SootMethod sm : sc.getMethods()) {
+					if (sm.isConcrete() && (sm.toString().contains("main") || sm.toString().contains("reduce"))) {
+						System.out.println("method:"+sm.toString());
+						JimpleBody body = (JimpleBody) sm.retrieveActiveBody();
+						bodies.add(body);
+
+						//UnitGraph g = new CompleteUnitGraph(body);
+
+						CFGToDotGraph cfgToDot = new CFGToDotGraph();
+						DirectedGraph g = new CompleteUnitGraph(body);
+						DotGraph dotGraph = cfgToDot.drawCFG(g, body);
+						dotGraph.plot(sm.toString()+".dot");
 					}
 				}
 			}

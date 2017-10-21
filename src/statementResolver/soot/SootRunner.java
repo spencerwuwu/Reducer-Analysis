@@ -112,6 +112,8 @@ public class SootRunner {
 
 			// finally, run soot
 			loadClassesIntoScene(enumClasses(new File(jarFile)));
+			
+
 
 		} catch (Exception e) {
 			throw e;
@@ -157,7 +159,7 @@ public class SootRunner {
 			loadClassesIntoScene(new LinkedList<String>());
 
 			// now set the main class
-			inferMainMethod();
+			//inferMainMethod();
 
 		} catch (Exception e) {
 			throw e;
@@ -188,7 +190,7 @@ public class SootRunner {
 			loadClassesIntoScene(new LinkedList<String>());
 
 			// now set the main class
-			inferMainMethod();
+			//inferMainMethod();
 
 		} catch (Exception e) {
 			throw e;
@@ -199,9 +201,13 @@ public class SootRunner {
 		SootMethod mainMethod = null;
 		SootClass mainClass = null;
 		boolean toManyMains = false;
+		
 		StringBuilder sb = new StringBuilder();
+		
+		
 		for (SootClass c : Scene.v().getApplicationClasses()) {
 			if (c.declaresMethod("main", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
+				/*
 				if (mainMethod != null) {
 					toManyMains = true;
 				}
@@ -212,6 +218,10 @@ public class SootRunner {
 				System.err.println(mainMethod.getSignature());
 				sb.append(mainMethod.getSignature());
 				sb.append("\n");
+				*/
+			}
+			else if (c.declaresMethod("reduce", Arrays.asList((Type)ArrayType.v(RefType.v("java.lang.String"), 1)), VoidType.v())) {
+				System.out.println("reduce");
 			}
 		}
 
@@ -283,9 +293,9 @@ public class SootRunner {
 					sc.setResolvingLevel(SootClass.SIGNATURES);
 				}
 
-				// if (classes.contains(sc.getName())) {
-				// sc.setApplicationClass();
-				// }
+				 //if (classes.contains(sc.getName())) {
+				 //sc.setApplicationClass();
+				 //}
 			}
 
 		} catch (UnsupportedEncodingException e) {
