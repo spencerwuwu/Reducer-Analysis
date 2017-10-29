@@ -264,11 +264,17 @@ public class StatementResolver {
 
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete() && (sm.toString().contains("main") || sm.toString().contains("reduce"))) {
-						System.out.println("method:"+sm.toString());
+						System.out.println("method:"+sm.toString()+"\n");
 						JimpleBody body = (JimpleBody) sm.retrieveActiveBody();
 						bodies.add(body);
-
+						System.out.println(body.toString());
+						/*
+						List<UnitBox> Boxes = body.getUnitBoxes(true);
+						for (UnitBox u: Boxes)
+							System.out.println(u.getUnit().toString());
 						//UnitGraph g = new CompleteUnitGraph(body);
+						System.out.println("----------\n");
+						*/
 
 						CFGToDotGraph cfgToDot = new CFGToDotGraph();
 						DirectedGraph g = new CompleteUnitGraph(body);
