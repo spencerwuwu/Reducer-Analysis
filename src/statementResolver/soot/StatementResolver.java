@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import statementResolver.Option;
 import statementResolver.color.Color;
 import soot.Body;
+import soot.Local;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -138,14 +139,28 @@ public class StatementResolver {
 		//for (JimpleBody body : this.getSceneBodies()) {
 		for (JimpleBody body : this.get_colloctor_SceneBodies()) {
 
-			List<UnitBox> Boxes = body.getUnitBoxes(true);
+			System.out.println(Color.ANSI_BLUE+body.toString()+Color.ANSI_RESET);
 			
+			List<ValueBox> defBoxes = body.getUseBoxes();
+			for (ValueBox d: defBoxes) {
+				Value value = d.getValue();
+				String str = d.getValue().toString();
+				if ( value instanceof Local ) {
+				
+					System.out.println(Color.ANSI_RED+str + "\n"+Color.ANSI_RESET);
+				}
+				else {
+					System.out.println(str + "\n");
+				}
+			}
+
+			List<UnitBox> Boxes = body.getUnitBoxes(true);
 			for (UnitBox u: Boxes) {
 
 				// Generate reducer's graph
 				String str = u.getUnit().toString();
 				
-				// System.out.println(str + "//\n");
+				//System.out.println(Color.ANSI_GREEN+str + "\n"+Color.ANSI_RESET);
 				
 				/*
 					CFGToDotGraph cfgToDot = new CFGToDotGraph();
@@ -258,28 +273,31 @@ public class StatementResolver {
 		Set<JimpleBody> bodies = new LinkedHashSet<JimpleBody>();
 		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
 			//System.out.println(sc);
-			if (sc.resolvingLevel() >= SootClass.BODIES && sc.toString().contains("collector531_810_1_1_3")) {
-				System.out.println("\n");
-				System.out.println(sc);
+			if (sc.resolvingLevel() >= SootClass.BODIES && sc.toString().contains("collector0_90_1_7")) {
+				//System.out.println("\n");
+				//System.out.println(sc);
 
 				for (SootMethod sm : sc.getMethods()) {
 					if (sm.isConcrete() && (sm.toString().contains("main") || sm.toString().contains("reduce"))) {
-						System.out.println("method:"+sm.toString()+"\n");
+						//System.out.println("method:"+sm.toString()+"\n");
+						
+						
 						JimpleBody body = (JimpleBody) sm.retrieveActiveBody();
 						bodies.add(body);
-						System.out.println(body.toString());
+						//System.out.println(body.toString());
 						/*
 						List<UnitBox> Boxes = body.getUnitBoxes(true);
 						for (UnitBox u: Boxes)
 							System.out.println(u.getUnit().toString());
 						//UnitGraph g = new CompleteUnitGraph(body);
 						System.out.println("----------\n");
-						*/
 
 						CFGToDotGraph cfgToDot = new CFGToDotGraph();
 						DirectedGraph g = new CompleteUnitGraph(body);
 						DotGraph dotGraph = cfgToDot.drawCFG(g, body);
 						dotGraph.plot(sm.toString()+".dot");
+						
+						*/
 					}
 				}
 			}
