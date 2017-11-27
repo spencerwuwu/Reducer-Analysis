@@ -7,6 +7,7 @@ import statementResolver.Option;
 import statementResolver.color.Color;
 import soot.Body;
 import soot.Local;
+import soot.NormalUnitPrinter;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
@@ -14,21 +15,27 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.UnitBox;
+import soot.UnitPrinter;
 import soot.Value;
 import soot.ValueBox;
 import soot.jimple.*;
 import soot.jimple.internal.*;
 import soot.jimple.internal.JLookupSwitchStmt;
+import soot.jimple.toolkits.pointer.LocalMustNotAliasAnalysis;
 import soot.toolkits.graph.BlockGraph;
 import soot.toolkits.graph.BriefBlockGraph;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.CompleteUnitGraph;
 import soot.toolkits.graph.DirectedGraph;
+import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.toolkits.graph.UnitGraph;
+import soot.toolkits.scalar.FlowAnalysis;
+import soot.toolkits.scalar.SimpleLiveLocals;
 import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -153,21 +160,64 @@ public class StatementResolver {
 					System.out.println(str + "\n");
 				}
 			}
+			System.out.println("=======================================");	
+			
 
+			UnitGraph graph = new ExceptionalUnitGraph(body);
+			SimpleLiveLocals sll = new SimpleLiveLocals(graph);
+
+			Iterator gIt = graph.iterator();
+			while (gIt.hasNext()) {
+
+				Unit u = (Unit)gIt.next();
+				List before = sll.getLiveLocalsBefore(u);
+				List after = sll.getLiveLocalsAfter(u);
+				UnitPrinter up = new NormalUnitPrinter(body);
+				up.setIndent("");
+				
+				System.out.println("---------------------------------------");			
+				u.toString(up);			
+				System.out.println(up.output());
+				System.out.print("Live in: {");
+				String sep = "";
+				Iterator befIt = before.iterator();
+				while (befIt.hasNext()) {
+					Local l = (Local)befIt.next();
+					System.out.print(sep);
+					System.out.print(l.getName() + ": " + l.getType());
+					sep = ", ";
+				}
+				System.out.println("}");
+				System.out.print("Live out: {");
+				sep = "";
+				Iterator aftIt = after.iterator();
+				while (aftIt.hasNext()) {
+					Local l = (Local)aftIt.next();
+					System.out.print(sep);
+					System.out.print(l.getName() + ": " + l.getType());
+					sep = ", ";
+				}			
+				System.out.println("}");			
+				System.out.println("---------------------------------------");
+			}
+			System.out.println("=======================================");
+
+			/*
 			List<UnitBox> Boxes = body.getUnitBoxes(true);
 			for (UnitBox u: Boxes) {
 
 				// Generate reducer's graph
-				String str = u.getUnit().toString();
-				
+				//String str = u.getUnit().toString();
+				//System.out.println(u.getUnit().getTags());
 				//System.out.println(Color.ANSI_GREEN+str + "\n"+Color.ANSI_RESET);
 				
-				/*
+				
 					CFGToDotGraph cfgToDot = new CFGToDotGraph();
-					DirectedGraph g = new CompleteUnitGraph(body);
+					//DirectedGraph g = new CompleteUnitGraph(body);
+					
 					DotGraph dotGraph = cfgToDot.drawCFG(g, body);
 					dotGraph.plot("context0_90_11_2.dot");
-				*/
+					 
 				
 				// For further analysis
 				if (u.getUnit() instanceof JLookupSwitchStmt) {
@@ -228,6 +278,7 @@ public class StatementResolver {
 					System.out.println(u.getUnit());
 				}
 			}
+			*/
 			
 			
 		}
@@ -278,12 +329,14 @@ public class StatementResolver {
 				//System.out.println(sc);
 
 				for (SootMethod sm : sc.getMethods()) {
-					if (sm.isConcrete() && (sm.toString().contains("main") || sm.toString().contains("reduce"))) {
+					if (sm.isConcrete() && (sm.toString().contains("reduce("))) {
 						//System.out.println("method:"+sm.toString()+"\n");
 						
-						
 						JimpleBody body = (JimpleBody) sm.retrieveActiveBody();
+						System.out.println("=======================================");			
+						System.out.println(sm.getName());
 						bodies.add(body);
+						break;
 						//System.out.println(body.toString());
 						/*
 						List<UnitBox> Boxes = body.getUnitBoxes(true);
