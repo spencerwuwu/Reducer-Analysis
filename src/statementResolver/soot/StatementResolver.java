@@ -5,6 +5,7 @@ import com.google.common.base.Preconditions;
 
 import statementResolver.Option;
 import statementResolver.color.Color;
+import statementResolver.state.State;
 import soot.Body;
 import soot.Local;
 import soot.NormalUnitPrinter;
@@ -35,10 +36,12 @@ import soot.util.cfgcmd.CFGToDotGraph;
 import soot.util.dot.DotGraph;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class StatementResolver {
@@ -142,81 +145,171 @@ public class StatementResolver {
 			
 		}
 		
+		// init values of analysis
+		Map<Value, String> local_vars = new HashMap<Value, String>();
+		Map<Unit, List<Unit>> label_list = new HashMap<Unit, List<Unit>>();
+		List<State> state_list = new ArrayList<State>();
 
-		//for (JimpleBody body : this.getSceneBodies()) {
+		System.out.println("=======================================");	
+		
 		for (JimpleBody body : this.get_colloctor_SceneBodies()) {
-
+			UnitGraph graph = new ExceptionalUnitGraph(body);
+			Iterator gIt = graph.iterator();
+			List<UnitBox> UnitBoxes = body.getUnitBoxes(true);
+			
 			System.out.println(Color.ANSI_BLUE+body.toString()+Color.ANSI_RESET);
 			
-			List<ValueBox> defBoxes = body.getUseBoxes();
+			// Storing variables
+			List<ValueBox> defBoxes = body.getDefBoxes();
 			for (ValueBox d: defBoxes) {
 				Value value = d.getValue();
 				String str = d.getValue().toString();
+				local_vars.put(value, "");
+				System.out.println(Color.ANSI_RED+"Insert " + str +Color.ANSI_RESET);
+			}
+
+			
+			// Variables value TODO
+			List<ValueBox> useBoxes = body.getUseBoxes();
+			for (ValueBox d: useBoxes) {
+				Value value = d.getValue();
+				String str = d.getValue().toString();
 				if ( value instanceof Local ) {
-				
-					System.out.println(Color.ANSI_RED+str + "\n"+Color.ANSI_RESET);
+
 				}
 				else {
-					System.out.println(str + "\n");
+					//System.out.println(str + "\n");
 				}
 			}
+			
+			System.out.println("=======================================");	
+
+			// initialize for controll flow
+			// Set up label points
+			List<Unit> no_label = new ArrayList<Unit>();
+			for (UnitBox ub: UnitBoxes) {
+				List<Unit> units = new ArrayList<Unit>();
+				label_list.put(ub.getUnit(), units);				
+			}
+			Unit currentkey = null;
+			boolean label_flag = false;
+			while (gIt.hasNext()) {
+				Unit u = (Unit)gIt.next();	
+				List<Unit> units = label_list.get(u);
+				if (units == null) {
+					if (!label_flag) {
+					// doesn't enter label yet
+						no_label.add(u);
+						System.out.println(u.toString());
+					}
+					else {
+						units = label_list.get(currentkey);
+						units.add(u);
+						label_list.put(u, units);
+						System.out.println("->"+currentkey.toString()+" - "+u.toString());
+					}
+				}
+				else {
+					currentkey = u;
+					units.add(u);
+					label_list.put(u, units);
+					label_flag = true;
+					System.out.println("->"+u.toString()+" - "+u.toString());
+				}
+			}
+
+
 			System.out.println("=======================================");	
 			
+			// Starting to analysis
+			Iterator no_label_it = no_label.iterator();
+			while(no_label_it.hasNext()) {
+				Unit u = (Unit)no_label_it.next();
+				System.out.println(u.toString());
+			}
 
-			UnitGraph graph = new ExceptionalUnitGraph(body);
-			SimpleLiveLocals sll = new SimpleLiveLocals(graph);
-
-			Iterator gIt = graph.iterator();
+			/*
 			while (gIt.hasNext()) {
 
-				Unit u = (Unit)gIt.next();
-				List before = sll.getLiveLocalsBefore(u);
-				List after = sll.getLiveLocalsAfter(u);
-				UnitPrinter up = new NormalUnitPrinter(body);
-				up.setIndent("");
-				
-				System.out.println("---------------------------------------");			
-				u.toString(up);			
-				System.out.println(up.output());
-				System.out.print("Live in: {");
-				String sep = "";
-				Iterator befIt = before.iterator();
-				while (befIt.hasNext()) {
-					Local l = (Local)befIt.next();
-					System.out.print(sep);
-					System.out.print(l.getName() + ": " + l.getType());
-					sep = ", ";
+				Unit u = (Unit)gIt.next();	
+				//System.out.println(Color.ANSI_GREEN+ u.toString() + "\n"+Color.ANSI_RESET);
+
+				if (u instanceof JLookupSwitchStmt) {
+
 				}
-				System.out.println("}");
-				System.out.print("Live out: {");
-				sep = "";
-				Iterator aftIt = after.iterator();
-				while (aftIt.hasNext()) {
-					Local l = (Local)aftIt.next();
-					System.out.print(sep);
-					System.out.print(l.getName() + ": " + l.getType());
-					sep = ", ";
-				}			
-				System.out.println("}");			
-				System.out.println("---------------------------------------");
+				else if (u instanceof AssignStmt) {
+					
+				}
+				else if (u instanceof ArrayRef) {
+					
+				}
+				else if (u instanceof BreakpointStmt) {
+					
+				}
+				else if (u instanceof BinopExpr) {
+					
+				}
+				else if (u instanceof CaughtExceptionRef) {
+					
+				}
+				else if (u instanceof GotoStmt) {
+				}
+				else if (u instanceof NoSuchLocalException) {
+					
+				}
+				else if (u instanceof NullConstant) {
+					
+				}
+				else if (u instanceof IfStmt) {
+
+					
+				}
+				else if (u instanceof IdentityStmt) {
+					
+				}
+				else if (u instanceof JInstanceOfExpr) {
+					
+				}
+				else if (u instanceof JExitMonitorStmt) {
+					
+				}
+				else if (u instanceof JInvokeStmt) {
+					
+				}
+				else if (u instanceof ReturnStmt) {
+					
+				}
+				else if (u instanceof TableSwitchStmt) {
+					
+				}
+				else if (u instanceof ThrowStmt) {
+					
+				}
+				else if (u instanceof ReturnVoidStmt) {
+					
+				}
+				else {
+					System.out.println(u);
+				}
 			}
 			System.out.println("=======================================");
 
-			/*
+
+
 			List<UnitBox> Boxes = body.getUnitBoxes(true);
 			for (UnitBox u: Boxes) {
 
 				// Generate reducer's graph
-				//String str = u.getUnit().toString();
+				String str = u.getUnit().toString();
 				//System.out.println(u.getUnit().getTags());
-				//System.out.println(Color.ANSI_GREEN+str + "\n"+Color.ANSI_RESET);
+				System.out.println(Color.ANSI_GREEN+str + "\n"+Color.ANSI_RESET);
 				
 				
 					CFGToDotGraph cfgToDot = new CFGToDotGraph();
 					//DirectedGraph g = new CompleteUnitGraph(body);
 					
-					DotGraph dotGraph = cfgToDot.drawCFG(g, body);
-					dotGraph.plot("context0_90_11_2.dot");
+					//DotGraph dotGraph = cfgToDot.drawCFG(g, body);
+					//dotGraph.plot("context0_90_11_2.dot");
 					 
 				
 				// For further analysis
@@ -278,8 +371,8 @@ public class StatementResolver {
 					System.out.println(u.getUnit());
 				}
 			}
-			*/
 			
+			*/
 			
 		}
 		
