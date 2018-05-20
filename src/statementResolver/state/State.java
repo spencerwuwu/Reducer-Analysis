@@ -30,7 +30,7 @@ public class State {
 	
 	public void printForm() {
 		System.out.println("+++++++++++++++++++++++");
-		System.out.println("| no: " + this.num + "\t" + Color.ANSI_BLUE + this.input_command + Color.ANSI_RESET);
+		System.out.println("| no: " + this.num + ",\t" + Color.ANSI_BLUE + this.input_command + Color.ANSI_RESET);
 		for (String var : local_vars.keySet()) {
 			System.out.println("| "+var + ":\t" + this.local_vars.get(var));
 		}

@@ -14,6 +14,7 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
+import soot.Type;
 import soot.Unit;
 import soot.UnitBox;
 import soot.UnitPrinter;
@@ -45,7 +46,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class StatementResolver {
-	
+
+	private Map<String, Boolean> input_list_used = new HashMap<String, Boolean>(); // X0, X1, X2
 
 	private final List<String> resolvedClassNames;
 	Option op = new Option();
@@ -149,7 +151,6 @@ public class StatementResolver {
 		Map<String, String> local_vars = new HashMap<String, String>();
 		Map<Unit, List<UnitSet>> label_list = new HashMap<Unit, List<UnitSet>>();
 		List<State> state_list = new ArrayList<State>();
-		Map<String, Boolean> input_list_used = new HashMap<String, Boolean>();
 		
 		int current_no = 0;
 		int command_line_no = 1;
@@ -218,16 +219,26 @@ public class StatementResolver {
 				}
 			}
 			System.out.println("=======================================");	
+			
 			// Starting to analysis
+			int deter_unit_state = 0;
 			for (UnitSet us : no_label) { // no label section
-				if (deterUnit(us.getUnit()) == 1) {
-					state_list.add( handleUnit(us.getUnit(),local_vars, current_no, us.getLine()).getState() );
+				deter_unit_state = deterUnit(us.getUnit());
+				if (deter_unit_state == 1) {
+					State st = handleUnit(us.getUnit(), local_vars, current_no, us.getLine()).getState();
+					state_list.add(st);
 					System.out.println( Color.ANSI_BLUE+"handling '" +us.getUnit().toString()+"'"+ Color.ANSI_RESET);
 					current_no++;
+					st.printForm();
 					System.out.println("--");
 				}
-				else {
-					//System.out.println(u.toString());
+				else if (deter_unit_state == 3) {
+					System.out.println(Color.ANSI_BLUE+"++++++++++++++++ Return +++++++++++++++++"+Color.ANSI_RESET);
+					break;
+				}
+				else if (deter_unit_state == 4) {
+					System.out.println("ggininder");
+					System.out.println(us.getUnit().toString());
 				}
 			}
 			
@@ -240,7 +251,8 @@ public class StatementResolver {
 					for (Unit u_index : label_list.keySet()) {
 						List<UnitSet> unit_list = label_list.get(u_index);
 						for (UnitSet us : unit_list) {
-							if (deterUnit(us.getUnit()) == 1) {
+							deter_unit_state = deterUnit(us.getUnit());
+							if (deter_unit_state == 1) {
 								State st = handleUnit(us.getUnit(), local_vars, current_no, us.getLine()).getState();
 								state_list.add(st);
 								System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
@@ -248,7 +260,7 @@ public class StatementResolver {
 								current_no++;
 								st.printForm();
 								System.out.println("------------------------------------");
-							} else if (deterUnit(us.getUnit()) == 2) {
+							} else if (deter_unit_state == 2) {
 								StateUnitPair su = handleUnit(us.getUnit(), local_vars, current_no, us.getLine());
 								state_list.add(su.getState());
 								System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
@@ -258,9 +270,19 @@ public class StatementResolver {
 								System.out.println("------------------------------------");
 								if (su.getUnit() != null) {
 									unit_target = su.getUnit();
+									unit_target_flag = true;
 									break_flag = true;
 									break; // break UnitSet for-loop
 								}
+							}
+							else if (deter_unit_state == 3) {
+								System.out.println(Color.ANSI_BLUE+"++++++++++++++++ Return +++++++++++++++++"+Color.ANSI_RESET);
+								break_flag = true;
+								break; // break UnitSet for-loop
+							}
+							else  if (deter_unit_state == 4) {
+								System.out.println("ggininder");
+								System.out.println(us.getUnit().toString());
 							}
 						}
 						if (break_flag) {
@@ -274,14 +296,15 @@ public class StatementResolver {
 						if (u_index == unit_target) {
 							List<UnitSet> unit_list = label_list.get(u_index);
 							for (UnitSet us : unit_list) {
-								if (deterUnit(us.getUnit()) == 1) {
+								deter_unit_state = deterUnit(us.getUnit());
+								if (deter_unit_state == 1) {
 									State st = handleUnit(us.getUnit(), local_vars, current_no, us.getLine()).getState();
 									state_list.add(st);
 									System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
 											+ Color.ANSI_RESET);
 									current_no++;
 									System.out.println("------------------------------------");
-								} else if (deterUnit(us.getUnit()) == 2) {
+								} else if (deter_unit_state == 2) {
 									StateUnitPair su = handleUnit(us.getUnit(), local_vars, current_no, us.getLine());
 									state_list.add(su.getState());
 									if (su.getUnit() != null) {
@@ -293,6 +316,16 @@ public class StatementResolver {
 									System.out.println("------------------------------------");
 									break_flag = true;
 									break; // break UnitSet for-loop
+								}
+								else if (deter_unit_state == 3) {
+									System.out.println(Color.ANSI_BLUE+"++++++++++++++++ Return +++++++++++++++++"+Color.ANSI_RESET);
+									break_flag = true;
+									unit_target_flag = false;
+									break; // break UnitSet for-loop
+								}
+								else  if (deter_unit_state == 4) {
+									System.out.println("ggininder");
+									System.out.println(us.getUnit().toString());
 								}
 							}
 							if (break_flag) {
@@ -326,9 +359,11 @@ public class StatementResolver {
 		
 	}
 	// TODO: match all cases.
-	// 0 :
+	// 0 : null
 	// 1 : no unit return, eg: AssignStmt
 	// 2 : going to a unit target, eg: GotoStmt
+	// 3 : return
+	// 4 : testing
 	protected int deterUnit(Unit u) {
 		if (u instanceof JLookupSwitchStmt) {
 			return 0;
@@ -361,9 +396,9 @@ public class StatementResolver {
 			return 2;
 		}
 		else if (u instanceof IdentityStmt) {
-			return 0;
+			return 1;
 		}
-		else if (u instanceof JInstanceOfExpr) {
+		else if (u instanceof InstanceOfExpr) {
 			return 0;
 		}
 		else if (u instanceof JExitMonitorStmt) {
@@ -373,7 +408,7 @@ public class StatementResolver {
 			return 0;
 		}
 		else if (u instanceof ReturnStmt) {
-			return 0;
+			return 3;
 		}
 		else if (u instanceof TableSwitchStmt) {
 			return 0;
@@ -382,7 +417,7 @@ public class StatementResolver {
 			return 0;
 		}
 		else if (u instanceof ReturnVoidStmt) {
-			return 0;
+			return 3;
 		}
 		return 0;
 	}
@@ -393,29 +428,54 @@ public class StatementResolver {
 		if (u instanceof JLookupSwitchStmt) {
 		}
 		else if (u instanceof AssignStmt) {			
-			String assignment = "";
-			String var = "";
-			String u_s = u.toString();
-			char c;
-			boolean flag = false;
-			for (int i = 0; i < u_s.length(); i++) {	// Separating var and assignment 
-				if (!flag) {
-					if ((c = u_s.charAt(i)) == '=') {
-						i++;
-						flag = true;
+			DefinitionStmt ds = (DefinitionStmt) u;
+			Value var = ds.getLeftOp();
+			Value assignment = ds.getRightOp();
+			String ass_s = assignment.toString();
+			String tmp = ass_s.replaceAll("(.*?)", ""); // removing quotes
+			ass_s = tmp;
+			// Normal assignment
+			if (!ass_s.contains("Iterator")) {
+				for (String re_var: local_vars.keySet()) {
+					if (ass_s.contains(re_var)) {
+						System.out.println("matched "+re_var+" "+ local_vars.get(re_var));
+						tmp = ass_s.replaceAll(re_var, local_vars.get(re_var));
+						ass_s = tmp;
 					}
-					else {
-						if (c != ' ') {
-							var = var + c;
+				}
+				System.out.println(Color.ANSI_GREEN + "assign: " + Color.ANSI_RESET + var.toString() + " -> " + ass_s);
+				st.update(var.toString(), ass_s);
+			}
+			else { // Handling iterator relative assignments
+				if (ass_s.contains("hasNext()")) {
+					boolean flag = false;
+					for(String in_var : input_list_used.keySet()) {
+						if (!input_list_used.get(in_var)) {
+							flag = true;
+							break;
 						}
 					}
+					if (flag) {
+						ass_s = "1";
+					}
+					else {
+						ass_s = "0";
+					}
+					System.out.println(Color.ANSI_GREEN + "assign: " + Color.ANSI_RESET + var.toString() + " -> " + ass_s);
+					st.update(var.toString(), ass_s);
 				}
-				else {
-					assignment = assignment + u_s.charAt(i);
+				else if (ass_s.contains("next()")) {
+					for(String in_var : input_list_used.keySet()) {
+						if (!input_list_used.get(in_var)) {
+							input_list_used.put(in_var, true);
+							ass_s = in_var;
+							break;
+						}
+					}
+					System.out.println(Color.ANSI_GREEN + "assign: " + Color.ANSI_RESET + var.toString() + " -> " + ass_s);
+					st.update(var.toString(), ass_s);
 				}
 			}
-			System.out.println("set: " + var + " -> " + assignment);
-			st.update(var, assignment);
 			StateUnitPair su = new StateUnitPair(st, null);
 			return su; 
 		}
@@ -430,7 +490,7 @@ public class StatementResolver {
 		else if (u instanceof GotoStmt) {
 			GotoStmt gt_st = (GotoStmt) u;
 			Unit goto_target = gt_st.getTarget();
-			System.out.println("goto " + goto_target);
+			System.out.println(Color.ANSI_GREEN + "goto " + Color.ANSI_RESET + goto_target);
 			StateUnitPair su = new StateUnitPair(st, null);
 			return su;
 		}
@@ -442,13 +502,21 @@ public class StatementResolver {
 			IfStmt if_st = (IfStmt) u;
 			Unit goto_target = if_st.getTargetBox().getUnit();
 			Value condiction = if_st.getCondition();
-			System.out.println("goto " + goto_target + " when " + condiction);
+			System.out.println(Color.ANSI_GREEN + "goto " + Color.ANSI_RESET + goto_target + Color.ANSI_GREEN + " when " + Color.ANSI_RESET + condiction);
 			StateUnitPair su = new StateUnitPair(st, null);
 			return su;
 		}
 		else if (u instanceof IdentityStmt) {			
+			DefinitionStmt ds = (DefinitionStmt) u;
+			Value var = ds.getLeftOp();
+			Value assignment = ds.getRightOp();
+			String assignment_tail = assignment.toString().split("\\.(?=[^\\.]+$)")[1]; // Leave org.apache.hadoop.io.'IntWritable'
+			System.out.println(Color.ANSI_GREEN + "assign: " + Color.ANSI_RESET + var.toString() + " -> " + assignment_tail);
+			st.update(var.toString(), assignment_tail);
+			StateUnitPair su = new StateUnitPair(st, null);
+			return su; 	
 		}
-		else if (u instanceof JInstanceOfExpr) {			
+		else if (u instanceof InstanceOfExpr) {		
 		}
 		else if (u instanceof JExitMonitorStmt) {			
 		}
