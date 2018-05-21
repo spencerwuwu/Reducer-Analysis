@@ -47,7 +47,7 @@ import java.util.Set;
 
 public class StatementResolver {
 
-	private Map<String, Boolean> input_list_used = new HashMap<String, Boolean>(); // X0, X1, X2
+	private Map<String, Boolean> input_list_used = new HashMap<String, Boolean>();
 
 	private final List<String> resolvedClassNames;
 	Option op = new Option();
@@ -163,20 +163,23 @@ public class StatementResolver {
 			List<UnitBox> UnitBoxes = body.getUnitBoxes(true);
 			
 			System.out.println(Color.ANSI_BLUE+body.toString()+Color.ANSI_RESET);
-			
+			System.out.println("=======================================");			
+
 			// Storing variables
 			List<ValueBox> defBoxes = body.getDefBoxes();
 			for (ValueBox d: defBoxes) {
 				Value value = d.getValue();
 				String str = d.getValue().toString();
 				local_vars.put(value.toString(), "");
-				System.out.println(Color.ANSI_RED+"Insert " + str +Color.ANSI_RESET);
+				System.out.println("Variable " + str);
 			}
+			
+			// Insert input to be X0, X1, X2
 			for (int i = 0; i < 3; i++) {
 				String name = "X" + i;
 				input_list_used.put(name, false);
 				local_vars.put(name, name);
-				System.out.println(Color.ANSI_RED+"Insert " + name +Color.ANSI_RESET);
+				System.out.println("Variable " + name);
 			}
 			
 			
@@ -198,14 +201,14 @@ public class StatementResolver {
 					if (!label_flag) {
 					// doesn't enter label yet
 						no_label.add(new UnitSet(u, command_line_no));
-						System.out.println(command_line_no+" "+u.toString());
+						System.out.println(command_line_no+" "+Color.ANSI_BLUE+u.toString()+Color.ANSI_RESET);
 						command_line_no++;
 					}
 					else {
 						units = label_list.get(currentkey);
 						units.add(new UnitSet(u, command_line_no));
 						label_list.put(currentkey, units);
-						System.out.println(command_line_no+" ->"+currentkey.toString()+" - "+u.toString());
+						System.out.println(command_line_no+" "+currentkey.toString()+" - "+ Color.ANSI_BLUE+u.toString()+Color.ANSI_RESET);
 						command_line_no++;
 					}
 				}
@@ -214,7 +217,7 @@ public class StatementResolver {
 					units.add(new UnitSet(u, command_line_no));
 					label_list.put(u, units);
 					label_flag = true;
-					System.out.println(command_line_no+" ->"+u.toString()+" - "+u.toString());
+					System.out.println(command_line_no+" "+u.toString()+" - "+Color.ANSI_BLUE+u.toString()+Color.ANSI_RESET);
 					command_line_no++;
 				}
 			}
@@ -227,7 +230,7 @@ public class StatementResolver {
 				if (deter_unit_state == 1) {
 					State st = handleUnit(us.getUnit(), local_vars, current_no, us.getLine()).getState();
 					state_list.add(st);
-					System.out.println( Color.ANSI_BLUE+"handling '" +us.getUnit().toString()+"'"+ Color.ANSI_RESET);
+					System.out.println( Color.ANSI_BLUE+"line '" +us.getUnit().toString()+"'"+ Color.ANSI_RESET);
 					current_no++;
 					st.printForm();
 					System.out.println("--");
@@ -255,7 +258,7 @@ public class StatementResolver {
 							if (deter_unit_state == 1) {
 								State st = handleUnit(us.getUnit(), local_vars, current_no, us.getLine()).getState();
 								state_list.add(st);
-								System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
+								System.out.println(Color.ANSI_BLUE + "line '" + us.getUnit().toString() + "'"
 										+ Color.ANSI_RESET);
 								current_no++;
 								st.printForm();
@@ -263,7 +266,7 @@ public class StatementResolver {
 							} else if (deter_unit_state == 2) {
 								StateUnitPair su = handleUnit(us.getUnit(), local_vars, current_no, us.getLine());
 								state_list.add(su.getState());
-								System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
+								System.out.println(Color.ANSI_BLUE + "line '" + us.getUnit().toString() + "'"
 										+ Color.ANSI_RESET);
 								current_no++;
 								su.getState().printForm();
@@ -300,7 +303,7 @@ public class StatementResolver {
 								if (deter_unit_state == 1) {
 									State st = handleUnit(us.getUnit(), local_vars, current_no, us.getLine()).getState();
 									state_list.add(st);
-									System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
+									System.out.println(Color.ANSI_BLUE + "line '" + us.getUnit().toString() + "'"
 											+ Color.ANSI_RESET);
 									current_no++;
 									System.out.println("------------------------------------");
@@ -310,7 +313,7 @@ public class StatementResolver {
 									if (su.getUnit() != null) {
 										unit_target = su.getUnit();
 									}
-									System.out.println(Color.ANSI_BLUE + "handling '" + us.getUnit().toString() + "'"
+									System.out.println(Color.ANSI_BLUE + "line '" + us.getUnit().toString() + "'"
 											+ Color.ANSI_RESET);
 									current_no++;
 									System.out.println("------------------------------------");
@@ -555,19 +558,22 @@ public class StatementResolver {
 	protected Set<JimpleBody> get_colloctor_SceneBodies() {
 		Set<JimpleBody> bodies = new LinkedHashSet<JimpleBody>();
 		for (SootClass sc : new LinkedList<SootClass>(Scene.v().getClasses())) {
-			//System.out.println(sc);
+			
+			// Specify target class name here
 			if (sc.resolvingLevel() >= SootClass.BODIES && sc.toString().contains("collector0_90_1_7")) {
 
-				for (SootMethod sm : sc.getMethods()) {
+				for (SootMethod sm : sc.getMethods()) {			
+					// Specify target function name here
 					if (sm.isConcrete() && (sm.toString().contains("reduce("))) {
-						//System.out.println("method:"+sm.toString()+"\n");
+						System.out.println("method:"+sm.toString());
 						
 						JimpleBody body = (JimpleBody) sm.retrieveActiveBody();
 						System.out.println("=======================================");			
-						System.out.println(sm.getName());
+						//System.out.println(sm.getName());
 						bodies.add(body);
 						break;
 					}
+					
 				}
 			}
 		}
