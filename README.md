@@ -1,4 +1,4 @@
-# Java Reducer Symbolic Analysis
+# Java Reducer Symbolic Execution
 This is a derived project from [Soot](https://github.com/Sable/soot) 
 and [Jayhorn](https://github.com/jayhorn/jayhorn).
 
@@ -14,7 +14,7 @@ usage: Input [options]
 ```
 
 This project converts the specified function's bytecodes into jimple
-files, and performs symbolic analysis.   
+files, and performs symbolic execution analysis.   
 Specify the target class and function to analysis in 
 `StatementResolver.soot.StatementResolver.get_colloctor_SceneBodies`.
 
