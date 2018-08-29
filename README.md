@@ -1,6 +1,9 @@
-# Java Reducer Symbolic Execution
+# Java Reducer Analysis
 This is a derived project from [Soot](https://github.com/Sable/soot) 
-and [Jayhorn](https://github.com/jayhorn/jayhorn).
+and [Jayhorn](https://github.com/jayhorn/jayhorn).   
+Currently it is just demonstrating a basic structure of
+analyzing the symbolic states while executing a reducer. 
+A more common-support tool is under development.
 
 ## Usage
 ```
