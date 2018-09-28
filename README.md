@@ -1,4 +1,7 @@
 # Java Reducer Analysis
+### [Deprecated]    
+### Please refer to [J-ReCoVer](https://github.com/spencerwuwu/J-ReCoVer)
+
 This is a derived project from [Soot](https://github.com/Sable/soot) 
 and [Jayhorn](https://github.com/jayhorn/jayhorn).   
 Currently it is just demonstrating a basic structure of
